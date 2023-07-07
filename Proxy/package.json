@@ -1,0 +1,23 @@
+{
+  "name": "animesama-link",
+  "version": "1.0.0",
+  "description": "A Link between AnimeSama and XaFly AI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "Pronote",
+    "AI",
+    "IA",
+    "XaFly"
+  ],
+  "author": "Fufly, Xabi08YT",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "url": "^0.11.0"
+  }
+}
