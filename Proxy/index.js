@@ -1,5 +1,4 @@
 // Based on Fufly's code from pronote-proxy repo 
-
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -14,7 +13,7 @@ const server = http.createServer((req, res) => {
     const path = parsedUrl.pathname;
 
     if (req.method === 'GET' && (path.endsWith('/style.css'))) {
-        const filePath = `${webPath}${path.split("/")[2]}`;
+        const filePath = `${webPath}${path}`;
         const contentType = path.endsWith('.css') ? 'text/css' : 'application/javascript';
         fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) {
@@ -32,7 +31,7 @@ const server = http.createServer((req, res) => {
         const options = {
             method: req.method,
             headers: {
-                'User-Agent': req.headers['user-agent'],
+                'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
                 'Content-Type': req.headers['content-type'] != null ? req.headers['content-type'] : "application/json",
                 'Cookie': req.headers['cookie'] || ''
             }
@@ -54,10 +53,18 @@ const server = http.createServer((req, res) => {
                     }
 
                     res.writeHead(proxyRes.statusCode, proxyRes.headers);
+                    let responseData = '';
+
                     proxyRes.on('data', chunk => {
-                        res.write(chunk);
+                        responseData += chunk.toString()
+                            .replace('<meta charset="utf-8" />', '<meta charset="utf-8" />\n<link rel="stylesheet" href="/style.css">')
+                            .replace('<p class="hidden md:block pr-1">Lecteur AS</p>', '<p id="DLTitle" class="hidden md:block pr-1">Download</p>')
+                        ;
                     });
+    
                     proxyRes.on('end', () => {
+                        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+                        res.write(responseData);
                         res.end();
                     });
                 });
@@ -71,6 +78,9 @@ const server = http.createServer((req, res) => {
             });
         } else {
             apiUrl += parsedUrl.search || '';
+            if(apiUrl.includes("catalogue")) {
+                apiUrl += "/";
+            }
             https.get(apiUrl, options, proxyRes => {
                 // Copy the cookies from the proxy response to the server response
                 const cookies = proxyRes.headers['set-cookie'];
@@ -78,11 +88,21 @@ const server = http.createServer((req, res) => {
                     res.setHeader('Set-Cookie', cookies);
                 }
 
-                res.writeHead(proxyRes.statusCode, proxyRes.headers);
+                
+
+                let responseData = '';
+
                 proxyRes.on('data', chunk => {
-                    res.write(chunk);
+                    responseData += chunk.toString()
+                        .replace('<meta charset="utf-8" />', '<meta charset="utf-8" />\n<link rel="stylesheet" href="/style.css">')
+                        .replace('<p class="hidden md:block pr-1">Lecteur AS</p>', '<p id="DLTitle" class="hidden md:block pr-1">Download</p>')
+                    ;
                 });
+
                 proxyRes.on('end', () => {
+                    console.log(proxyRes.statusCode);
+                    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+                    res.write(responseData);
                     res.end();
                 });
             }).on('error', error => {
@@ -90,6 +110,7 @@ const server = http.createServer((req, res) => {
                 res.writeHead(500);
                 res.end('Internal Server Error');
             });
+
         }
     }
 });
