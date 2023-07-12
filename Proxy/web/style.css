@@ -1,0 +1,8 @@
+#selectLecteursAS {
+    background-color: green;
+    opacity: 1;
+}
+
+#selectLecteurAS .pr-1::after {
+    content: "";
+}
